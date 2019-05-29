@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as ReactDOM from 'react-dom';
 import TimePickerPanel from 'rc-time-picker/lib/Panel';
 import classNames from 'classnames';
 import enUS from './locale/en_US';
@@ -52,6 +53,7 @@ export default function wrapPicker(Picker: React.ComponentClass<any>, pickerType
       onOk() {},
       onOpenChange() {},
       locale: {},
+      focusOnClose: true,
     };
 
     private picker: any;
@@ -134,9 +136,13 @@ export default function wrapPicker(Picker: React.ComponentClass<any>, pickerType
             const {
               prefixCls: customizePrefixCls,
               inputPrefixCls: customizeInputPrefixCls,
+              getCalendarContainer,
               size,
               disabled,
+              autoOpen,
             } = this.props;
+
+            const getPopupContainer = getCalendarContainer || (autoOpen && (() => ReactDOM.findDOMNode(this.picker)));
             const prefixCls = getPrefixCls('calendar', customizePrefixCls);
             const inputPrefixCls = getPrefixCls('input', customizeInputPrefixCls);
             const pickerClass = classNames(`${prefixCls}-picker`, {
@@ -182,6 +188,7 @@ export default function wrapPicker(Picker: React.ComponentClass<any>, pickerType
                 onBlur={this.handleBlur}
                 onMouseEnter={this.handleMouseEnter}
                 onMouseLeave={this.handleMouseLeave}
+                getCalendarContainer={getPopupContainer}
               />
             );
           }}

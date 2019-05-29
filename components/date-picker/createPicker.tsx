@@ -16,6 +16,8 @@ export interface PickerProps {
   value?: moment.Moment;
   open?: boolean;
   prefixCls: string;
+  autoOpen?: boolean;
+  focusOnClose?: boolean;
 }
 
 export interface PickerState {
@@ -54,6 +56,8 @@ export default function createPicker(TheCalendar: React.ComponentClass): any {
     private input: any;
     private prefixCls?: string;
 
+    private ignoreAutoOpenOnce = false;
+    
     constructor(props: any) {
       super(props);
       const value = props.value || props.defaultValue;
@@ -71,7 +75,8 @@ export default function createPicker(TheCalendar: React.ComponentClass): any {
     }
 
     componentDidUpdate(_: PickerProps, prevState: PickerState) {
-      if (!('open' in this.props) && prevState.open && !this.state.open) {
+      if (this.props.focusOnClose && !('open' in this.props) && prevState.open && !this.state.open) {
+        this.ignoreAutoOpenOnce = true;
         this.focus();
       }
     }
@@ -115,6 +120,21 @@ export default function createPicker(TheCalendar: React.ComponentClass): any {
         onOpenChange(open);
       }
     };
+
+    handleFocus: React.FocusEventHandler<HTMLInputElement> = e => {
+      const { autoOpen } = this.props as PickerProps;
+
+      const shouldOpen = autoOpen && !this.state.open && !this.ignoreAutoOpenOnce;
+      this.ignoreAutoOpenOnce = false;
+
+      if (shouldOpen) {
+        this.handleOpenChange(true);
+      }
+
+      if (this.props.onFocus) {
+        this.props.onFocus(e);
+      }
+    }
 
     focus() {
       this.input.focus();
@@ -195,6 +215,7 @@ export default function createPicker(TheCalendar: React.ComponentClass): any {
           onPanelChange={props.onPanelChange}
           onChange={this.handleCalendarChange}
           value={showDate}
+          focusablePanel={props.focusablePanel}
         />
       );
 
@@ -224,14 +245,18 @@ export default function createPicker(TheCalendar: React.ComponentClass): any {
       const input = ({ value: inputValue }: { value: moment.Moment | null }) => (
         <div>
           <input
-            ref={this.saveInput}
             disabled={props.disabled}
             readOnly
             value={(inputValue && inputValue.format(props.format)) || ''}
             placeholder={placeholder}
             className={props.pickerInputClass}
-            tabIndex={props.tabIndex}
             name={props.name}
+            ref={this.saveInput}
+            tabIndex={props.tabIndex}
+            onFocus={this.handleFocus}
+            onBlur={props.onBlur}
+            onMouseEnter={props.onMouseEnter}
+            onMouseLeave={props.onMouseLeave}
             {...dataOrAriaProps}
           />
           {clearIcon}
@@ -244,10 +269,6 @@ export default function createPicker(TheCalendar: React.ComponentClass): any {
           id={props.id}
           className={classNames(props.className, props.pickerClass)}
           style={{ ...pickerStyle, ...props.style }}
-          onFocus={props.onFocus}
-          onBlur={props.onBlur}
-          onMouseEnter={props.onMouseEnter}
-          onMouseLeave={props.onMouseLeave}
         >
           <RcDatePicker
             {...props}

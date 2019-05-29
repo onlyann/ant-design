@@ -16,6 +16,7 @@ export interface PickerProps {
   style?: React.CSSProperties;
   popupStyle?: React.CSSProperties;
   dropdownClassName?: string;
+  focusablePanel?: boolean;
   locale?: any;
   size?: 'large' | 'small' | 'default';
   getCalendarContainer?: (triggerNode: Element) => HTMLElement;
